@@ -1,5 +1,5 @@
-import { IBaseIndicatorInput } from "../types/base-indicator/base-indicator.type";
-import { NumberFormat } from "../utils/NumberFormatter";
+import { IBaseIndicatorInput } from "../types";
+import { NumberFormat } from "../utils";
 
 export class BaseIndicator<TOutput> {
   result: any;

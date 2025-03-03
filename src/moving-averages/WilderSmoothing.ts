@@ -1,19 +1,26 @@
-import { BaseIndicator } from "../base-indicator";
+import { DynamicIndicatorAbstract, BaseIndicator } from "../base-indicator";
 import { IMAInput } from "../types";
 
-//STEP3. Add class based syntax with export
-export class WilderSmoothing extends BaseIndicator<number> {
+export class WilderSmoothing extends DynamicIndicatorAbstract<number, number> {
   period: number;
-  price: number[];
-  override result: number[];
-  generator: Generator<number | undefined, number | undefined, number>;
+
   constructor(input: IMAInput) {
     super(input);
     this.period = input.period;
-    this.price = input.values;
-    var genFn = function* (
-      period: number
-    ): Generator<number | undefined, number | undefined, number> {
+  }
+
+  // Tạo generator chứa logic Wilder Smoothing
+  protected createGenerator(): Generator<
+    number | undefined,
+    number | undefined,
+    number
+  > {
+    const period = this.period;
+    return (function* (): Generator<
+      number | undefined,
+      number | undefined,
+      number
+    > {
       let sum = 0;
       let counter = 1;
       let current = yield;
@@ -21,48 +28,39 @@ export class WilderSmoothing extends BaseIndicator<number> {
       while (true) {
         if (counter < period) {
           counter++;
-          current ? (sum = sum + current) : undefined;
+          if (current !== undefined) sum += current;
           result = undefined;
-        } else if (counter == period) {
+        } else if (counter === period) {
           counter++;
-          current ? (sum = sum + current) : undefined;
+          if (current !== undefined) sum += current;
           result = sum;
         } else {
-          current && result != undefined
-            ? (result = result - result / period + current)
-            : undefined;
+          if (current !== undefined && result !== undefined) {
+            result = result - result / period + current;
+          }
         }
         current = yield result;
       }
-    };
-    this.generator = genFn(this.period);
-    this.generator.next();
-    this.result = [];
-    this.price.forEach((tick) => {
-      var result = this.generator.next(tick);
-      if (result.value != undefined) {
-        this.result.push(this.format(result.value));
-      }
-    });
+    })();
   }
 
-  static calculate = wildersmoothing;
-
-  nextValue(price: number): number | undefined {
-    var result = this.generator.next(price).value;
-    if (result != undefined) return this.format(result);
+  // Tính giá trị cho bar mới (dùng trong streaming)
+  public nextValue(price: number): number | undefined {
+    const result = this.generator.next(price).value;
+    this.values.push(price);
+    if (result !== undefined) return this.format(result);
     return undefined;
   }
-}
 
-export function wildersmoothing(input: IMAInput): number[] {
-  BaseIndicator.reverseInputs(input);
-  var result = new WilderSmoothing(input).result;
-  if (input.reversedInput) {
-    result.reverse();
+  // Hàm tính toán dựa trên toàn bộ input (dùng cho backtest)
+  static calculate(input: IMAInput): number[] {
+    BaseIndicator.reverseInputs(input);
+    const instance = new WilderSmoothing(input);
+    const result = instance.result;
+    if (input.reversedInput) {
+      result.reverse();
+    }
+    BaseIndicator.reverseInputs(input);
+    return result;
   }
-  BaseIndicator.reverseInputs(input);
-  return result;
 }
-
-//STEP 6. Run the tests
