@@ -1,4 +1,4 @@
-import { BaseIndicator, DynamicIndicatorAbstract } from "../base-indicator";
+import { DynamicIndicatorAbstract } from "../base-indicator";
 import { IMAInput } from "../types";
 import { LinkedList } from "../utils/LinkedList";
 
@@ -55,13 +55,13 @@ export class SMA extends DynamicIndicatorAbstract<number, number> {
   }
 
   static calculate(input: IMAInput): number[] {
-    BaseIndicator.reverseInputs(input);
+    DynamicIndicatorAbstract.reverseInputs(input);
     const smaInstance = new SMA(input);
     const result = smaInstance.result;
     if (input.reversedInput) {
       result.reverse();
     }
-    BaseIndicator.reverseInputs(input);
+    DynamicIndicatorAbstract.reverseInputs(input);
     return result;
   }
 }

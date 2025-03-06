@@ -49,7 +49,7 @@ export abstract class DynamicIndicatorAbstract<
     for (let i = 0; i < this.values.length; i++) {
       const res = this.generator.next(this.values[i]).value;
       if (res !== undefined) {
-        newResults.push(res);
+        newResults.push(this.format(res));
       }
     }
     this.result = newResults;

@@ -1,4 +1,4 @@
-import { BaseIndicator, DynamicIndicatorAbstract } from "../base-indicator";
+import { DynamicIndicatorAbstract } from "../base-indicator";
 import { IMAInput } from "../types";
 
 export class EMA extends DynamicIndicatorAbstract<number, number> {
@@ -63,13 +63,13 @@ export class EMA extends DynamicIndicatorAbstract<number, number> {
   }
 
   static calculate(input: IMAInput): number[] {
-    BaseIndicator.reverseInputs(input);
+    DynamicIndicatorAbstract.reverseInputs(input);
     const emaInstance = new EMA(input);
     const result = emaInstance.result;
     if (input.reversedInput) {
       result.reverse();
     }
-    BaseIndicator.reverseInputs(input);
+    DynamicIndicatorAbstract.reverseInputs(input);
     return result;
   }
 }
