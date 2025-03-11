@@ -1,13 +1,15 @@
 import { IBaseIndicatorInput } from "../types";
 import { NumberFormat } from "../utils/NumberFormatter";
 
-
 export class BaseIndicator<TOutput> {
-  result: any;
+  // Khai báo result là một mảng của TOutput
+  result: TOutput[] = [];
   format: (data: TOutput) => TOutput;
+
   constructor(input: IBaseIndicatorInput<TOutput>) {
     this.format = input.format || NumberFormat(1);
   }
+
   static reverseInputs(input: any): void {
     if (input.reversedInput) {
       input.values ? input.values.reverse() : undefined;
@@ -20,7 +22,8 @@ export class BaseIndicator<TOutput> {
     }
   }
 
-  getResult() {
+  // Khai báo kiểu trả về cho getResult là mảng các TOutput
+  getResult(): TOutput[] {
     return this.result;
   }
 }

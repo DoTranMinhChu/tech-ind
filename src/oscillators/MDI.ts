@@ -1,10 +1,10 @@
 import { DynamicIndicatorAbstract } from "../base-indicator";
-import { IPDICandle, IPDIInput } from "../types";
+import { IMDICandle, IMDIInput } from "../types";
 
-export class PDI extends DynamicIndicatorAbstract<IPDICandle, number> {
+export class MDI extends DynamicIndicatorAbstract<IMDICandle, number> {
   period: number;
 
-  constructor(input: IPDIInput) {
+  constructor(input: IMDIInput) {
     super(input);
     this.period = input.period;
   }
@@ -12,18 +12,18 @@ export class PDI extends DynamicIndicatorAbstract<IPDICandle, number> {
   protected createGenerator(): Generator<
     number | undefined,
     number | undefined,
-    IPDICandle
+    IMDICandle
   > {
     const period = this.period;
-    let prevTick: IPDICandle | null = null;
-    let smoothedPlusDM = 0;
+    let prevTick: IMDICandle | null = null;
+    let smoothedMinusDM = 0;
     let smoothedATR = 0;
     let initialized = false;
 
     return (function* (): Generator<
       number | undefined,
       number | undefined,
-      IPDICandle
+      IMDICandle
     > {
       let tick = yield;
       while (true) {
@@ -35,7 +35,7 @@ export class PDI extends DynamicIndicatorAbstract<IPDICandle, number> {
 
         const upMove = tick.high - prevTick.high;
         const downMove = prevTick.low - tick.low;
-        const rawPlusDM = upMove > downMove && upMove > 0 ? upMove : 0;
+        const rawMinusDM = downMove > upMove && downMove > 0 ? downMove : 0;
         const rawTR = Math.max(
           tick.high - tick.low,
           Math.abs(tick.high - prevTick.close),
@@ -43,32 +43,32 @@ export class PDI extends DynamicIndicatorAbstract<IPDICandle, number> {
         );
 
         if (!initialized) {
-          // Dùng giá trị của nến đầu tiên làm khởi tạo
-          smoothedPlusDM = rawPlusDM;
+          smoothedMinusDM = rawMinusDM;
           smoothedATR = rawTR;
           initialized = true;
         } else {
-          smoothedPlusDM = smoothedPlusDM - smoothedPlusDM / period + rawPlusDM;
+          smoothedMinusDM =
+            smoothedMinusDM - smoothedMinusDM / period + rawMinusDM;
           smoothedATR = smoothedATR - smoothedATR / period + rawTR;
         }
 
-        const plusDI =
-          smoothedATR === 0 ? 0 : (smoothedPlusDM / smoothedATR) * 100;
+        const minusDI =
+          smoothedATR === 0 ? 0 : (smoothedMinusDM / smoothedATR) * 100;
         prevTick = tick;
-        tick = yield plusDI;
+        tick = yield minusDI;
       }
     })();
   }
 
-  public nextValue(candle: IPDICandle): number | undefined {
+  public nextValue(candle: IMDICandle): number | undefined {
     const result = this.generator.next(candle).value;
     this.values.push(candle);
     return result !== undefined ? this.format(result) : undefined;
   }
 
-  static calculate(input: IPDIInput): number[] {
+  static calculate(input: IMDIInput): number[] {
     DynamicIndicatorAbstract.reverseInputs(input);
-    const instance = new PDI(input);
+    const instance = new MDI(input);
     const result = instance.result;
     if (input.reversedInput) {
       result.reverse();
