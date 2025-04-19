@@ -1,10 +1,10 @@
 import { DynamicIndicatorAbstract } from "../base-indicator";
-import { IMAInput } from "../types";
+import { IHHVInput } from "../types";
 
 export class HHV extends DynamicIndicatorAbstract<number, number> {
   period: number;
 
-  constructor(input: IMAInput) {
+  constructor(input: IHHVInput) {
     super(input);
     this.period = input.period;
   }
@@ -36,7 +36,7 @@ export class HHV extends DynamicIndicatorAbstract<number, number> {
     return undefined;
   }
 
-  static calculate(input: IMAInput): number[] {
+  static calculate(input: IHHVInput): number[] {
     DynamicIndicatorAbstract.reverseInputs(input);
     const hhvInstance = new HHV(input);
     const result = hhvInstance.result;
